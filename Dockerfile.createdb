@@ -1,0 +1,19 @@
+# コード・ファースト開発によるスキーマ構築用 ワンタイム実行コンテナ イメージ
+#
+# https://hub.docker.com/_/microsoft-dotnet
+FROM mcr.microsoft.com/dotnet/sdk:5.0
+WORKDIR /app
+ 
+# copy csproj and restore as distinct layers
+COPY *.csproj ./
+RUN dotnet restore
+ 
+# copy everything else and build app
+COPY . ./
+RUN dotnet build --no-restore
+ 
+# create builtin database
+RUN dotnet tool install dotnet-ef --tool-path=/usr/local/bin
+ENV ASPNETCORE_ENVIRONMENT=Production
+RUN dotnet ef migrations add InitialCreate
+ENTRYPOINT ["dotnet", "ef", "database", "update"]

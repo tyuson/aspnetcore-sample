@@ -1,0 +1,43 @@
+version: '3'
+#
+# 本番モードのアプリケーション起動用
+#
+services:
+  db:
+    # PostgreSQLサーバ コンテナ
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_DB=movieDB
+      - POSTGRES_USER=user1
+      - POSTGRES_PASSWORD=pass1
+
+  createdb:
+    # コード・ファースト開発によるスキーマ構築用 ワンタイム実行コンテナ
+    depends_on: 
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile.createdb
+    environment:
+      - PG_HOST=db
+      - PG_DB_NAME=movieDB
+      - PG_USERNAME=user1
+      - PG_PASSWORD=pass1
+
+  web:
+    # Razor Pages による ASP.NET Core サンプル アプリケーション コンテナ
+    depends_on: 
+      - db
+      - createdb
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: my-prod-image
+    ports:
+      - 5000:80
+    environment:
+      - PG_HOST=db
+      - PG_DB_NAME=movieDB
+      - PG_USERNAME=user1
+      - PG_PASSWORD=pass1
+#
